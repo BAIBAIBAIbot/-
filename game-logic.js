@@ -58,6 +58,7 @@
       vy: butterfly.vy,
       radius: butterfly.radius,
       phase: butterfly.phase,
+      spriteIndex: butterfly.spriteIndex,
       color: butterfly.color
     };
   }
@@ -77,7 +78,8 @@
 
   function spawnButterfly(existingIds) {
     const bounds = GAME_CONFIG.safeBounds;
-    const color = BUTTERFLY_COLORS[Math.floor(Math.random() * BUTTERFLY_COLORS.length)];
+    const spriteIndex = Math.floor(Math.random() * BUTTERFLY_COLORS.length);
+    const color = BUTTERFLY_COLORS[spriteIndex];
 
     return {
       id: makeButterflyId(existingIds),
@@ -87,6 +89,7 @@
       vy: randomBetween(-15, 15),
       radius: randomBetween(GAME_CONFIG.butterflyMinRadius, GAME_CONFIG.butterflyMaxRadius),
       phase: randomBetween(0, Math.PI * 2),
+      spriteIndex,
       color
     };
   }

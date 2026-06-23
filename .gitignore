@@ -28,3 +28,6 @@ venv/
 
 # Local brainstorming/mockup scratch files
 .superpowers/
+
+# Generated art source files used only during chroma-key cleanup
+assets/*-source.png

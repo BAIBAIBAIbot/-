@@ -23,7 +23,18 @@ body {
   font-family: "Trebuchet MS", "Verdana", sans-serif;
   color: var(--ink);
   background:
+    linear-gradient(rgba(255, 248, 216, 0.22), rgba(67, 91, 38, 0.28)),
+    url("assets/background-meadow.png") center / cover fixed,
     linear-gradient(180deg, #8fdcff 0%, #d8f6ff 34%, #b7dc6a 35%, #6aa848 100%);
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  backdrop-filter: blur(7px) saturate(1.08);
+  background: rgba(255, 247, 205, 0.16);
 }
 
 button {
@@ -60,6 +71,7 @@ button:focus-visible {
 }
 
 .game-page {
+  position: relative;
   width: min(1120px, calc(100vw - 28px));
   min-height: 100vh;
   margin: 0 auto;
@@ -76,7 +88,7 @@ button:focus-visible {
   align-items: center;
   justify-content: space-between;
   gap: 14px;
-  padding: 10px 12px;
+  padding: 10px 2px;
 }
 
 .topbar {
@@ -94,7 +106,7 @@ button:focus-visible {
 
 h1 {
   margin: 0;
-  font-size: clamp(1.8rem, 4.2vw, 3.6rem);
+  font-size: clamp(1.6rem, 3.5vw, 3rem);
   line-height: 0.95;
   letter-spacing: 0;
   text-shadow: 0 3px 0 rgba(255, 255, 255, 0.45);
@@ -112,7 +124,7 @@ h1 {
   border: 3px solid var(--panel-dark);
   border-radius: 8px;
   padding: 9px 12px;
-  background: var(--panel);
+  background: rgba(255, 248, 216, 0.92);
   box-shadow: inset 0 3px 0 rgba(255, 255, 255, 0.6), 0 3px 0 rgba(79, 47, 20, 0.25);
   text-align: center;
   font: 900 1rem "Courier New", monospace;
@@ -121,13 +133,14 @@ h1 {
 .stage {
   width: 100%;
   aspect-ratio: 16 / 9;
-  border: 5px solid #614325;
+  border: 6px solid #614325;
   border-radius: 8px;
   overflow: hidden;
   background: #7bbf57;
   box-shadow:
-    0 12px 0 rgba(82, 55, 29, 0.35),
-    0 18px 38px rgba(55, 61, 28, 0.25);
+    inset 0 0 0 3px rgba(255, 239, 169, 0.35),
+    0 12px 0 rgba(82, 55, 29, 0.42),
+    0 22px 46px rgba(37, 48, 24, 0.36);
 }
 
 canvas {

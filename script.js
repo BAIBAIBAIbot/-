@@ -14,6 +14,22 @@ let lastFrameTime = 0;
 
 ctx.imageSmoothingEnabled = false;
 
+const art = {
+  background: loadImage("assets/background-meadow.png"),
+  dog: loadImage("assets/dog-run.png"),
+  butterflies: loadImage("assets/butterflies.png")
+};
+
+function loadImage(src) {
+  const image = new Image();
+  image.onload = () => {
+    image.ready = true;
+    draw();
+  };
+  image.src = src;
+  return image;
+}
+
 function px(value) {
   return Math.round(value);
 }
@@ -24,6 +40,12 @@ function drawPixelRect(x, y, width, height, color) {
 }
 
 function drawBackground() {
+  if (art.background.ready) {
+    ctx.drawImage(art.background, 0, 0, CONFIG.width, CONFIG.height);
+    drawAtmosphere();
+    return;
+  }
+
   const sky = ctx.createLinearGradient(0, 0, 0, CONFIG.height);
   sky.addColorStop(0, "#82dcff");
   sky.addColorStop(0.45, "#d7f6ff");
@@ -42,6 +64,22 @@ function drawBackground() {
 
   drawFence();
   drawMeadowDetails();
+}
+
+function drawAtmosphere() {
+  const glow = ctx.createLinearGradient(0, 0, 0, CONFIG.height);
+  glow.addColorStop(0, "rgba(255, 255, 255, 0.08)");
+  glow.addColorStop(0.45, "rgba(255, 245, 168, 0.03)");
+  glow.addColorStop(1, "rgba(31, 71, 27, 0.12)");
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, CONFIG.width, CONFIG.height);
+
+  for (let i = 0; i < 36; i += 1) {
+    const x = (i * 137 + 41) % CONFIG.width;
+    const y = 382 + ((i * 53) % 132);
+    const alpha = 0.18 + (i % 5) * 0.04;
+    drawPixelRect(x, y, 16 + (i % 4) * 7, 3, `rgba(236, 255, 151, ${alpha})`);
+  }
 }
 
 function drawCloud(x, y, scale) {
@@ -111,13 +149,46 @@ function drawButterfly(butterfly, isTarget) {
   ctx.translate(px(butterfly.x), px(butterfly.y));
 
   if (isTarget) {
-    ctx.strokeStyle = "#ffe46b";
-    ctx.lineWidth = 4;
+    ctx.strokeStyle = "rgba(77, 49, 19, 0.34)";
+    ctx.lineWidth = 9;
+    ctx.beginPath();
+    ctx.arc(0, 0, radius + 24, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.strokeStyle = "rgba(255, 238, 105, 0.95)";
+    ctx.lineWidth = 5;
     ctx.setLineDash([7, 5]);
     ctx.beginPath();
-    ctx.arc(0, 0, radius + 17, 0, Math.PI * 2);
+    ctx.arc(0, 0, radius + 21, 0, Math.PI * 2);
     ctx.stroke();
     ctx.setLineDash([]);
+  }
+
+  if (art.butterflies.ready) {
+    const cells = 5;
+    const cellWidth = art.butterflies.width / cells;
+    const spriteIndex = butterfly.spriteIndex ?? 0;
+    const sx = cellWidth * (spriteIndex % cells);
+    const drawWidth = radius * 3.35;
+    const drawHeight = radius * 2.35;
+    const wingScale = 1 + Math.sin(butterfly.phase) * 0.06;
+
+    ctx.save();
+    ctx.scale(1, wingScale);
+    ctx.drawImage(
+      art.butterflies,
+      sx,
+      0,
+      cellWidth,
+      art.butterflies.height,
+      -drawWidth / 2,
+      -drawHeight / 2,
+      drawWidth,
+      drawHeight
+    );
+    ctx.restore();
+    ctx.restore();
+    return;
   }
 
   drawPixelRect(-4, -12, 8, 24, color.body);
@@ -142,7 +213,24 @@ function drawDog(dog, elapsed) {
   ctx.translate(px(dog.x), px(dog.y - jumpLift));
   ctx.scale(dog.facing, 1);
 
-  drawPixelRect(-42, 24, 78, 10, "rgba(45, 42, 26, 0.22)");
+  drawPixelRect(-69, 26, 132, 13, "rgba(45, 42, 26, 0.24)");
+
+  if (art.dog.ready) {
+    const dogWidth = 170;
+    const dogHeight = (art.dog.height / art.dog.width) * dogWidth;
+    const stride = dog.targetId ? Math.sin(elapsed * 15) * 3 : 0;
+
+    ctx.drawImage(
+      art.dog,
+      -dogWidth * 0.44,
+      -dogHeight + 30 + stride,
+      dogWidth,
+      dogHeight
+    );
+    ctx.restore();
+    return;
+  }
+
   drawPixelRect(-34, -21, 70, 34, "#c97934");
   drawPixelRect(-28, -28, 54, 30, "#e9a95c");
   drawPixelRect(18, -46, 36, 38, "#e9a95c");
