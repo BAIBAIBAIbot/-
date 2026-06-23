@@ -265,6 +265,14 @@
     };
   }
 
+  function getResultPresentation(state) {
+    return {
+      screen: "victory",
+      scoreText: `Score ${state.score}`,
+      scoreFontSize: 68
+    };
+  }
+
   const api = {
     GAME_CONFIG,
     createGameState,
@@ -277,7 +285,8 @@
     updateEffects,
     selectTarget,
     startRound,
-    restartRound
+    restartRound,
+    getResultPresentation
   };
 
   if (typeof module !== "undefined" && module.exports) {

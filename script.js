@@ -17,7 +17,8 @@ ctx.imageSmoothingEnabled = false;
 const art = {
   background: loadImage("assets/background-meadow.png"),
   dog: loadImage("assets/dog-run.png"),
-  butterflies: loadImage("assets/butterflies.png")
+  butterflies: loadImage("assets/butterflies.png"),
+  victory: loadImage("assets/victory-screen.png")
 };
 
 function loadImage(src) {
@@ -275,8 +276,59 @@ function drawEffects() {
   });
 }
 
+function drawScoreText(presentation) {
+  const x = CONFIG.width / 2;
+  const y = CONFIG.height - 92;
+
+  ctx.save();
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.font = `900 ${presentation.scoreFontSize}px Trebuchet MS, Verdana, sans-serif`;
+  ctx.lineJoin = "round";
+
+  ctx.lineWidth = 14;
+  ctx.strokeStyle = "rgba(69, 39, 15, 0.92)";
+  ctx.strokeText(presentation.scoreText, x, y + 7);
+
+  ctx.lineWidth = 7;
+  ctx.strokeStyle = "#fff4b8";
+  ctx.strokeText(presentation.scoreText, x, y);
+
+  ctx.fillStyle = "#ffcf4a";
+  ctx.fillText(presentation.scoreText, x, y);
+
+  ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+  ctx.font = `900 ${Math.round(presentation.scoreFontSize * 0.42)}px Trebuchet MS, Verdana, sans-serif`;
+  ctx.fillText(presentation.scoreText, x, y - 17);
+  ctx.restore();
+}
+
+function drawVictoryResult() {
+  const presentation = Logic.getResultPresentation(game);
+
+  if (art.victory.ready) {
+    ctx.drawImage(art.victory, 0, 0, CONFIG.width, CONFIG.height);
+    drawScoreText(presentation);
+    return;
+  }
+
+  ctx.fillStyle = "rgba(29, 49, 31, 0.54)";
+  ctx.fillRect(0, 0, CONFIG.width, CONFIG.height);
+  drawPixelRect(236, 146, 488, 222, "#fff6cf");
+  drawPixelRect(236, 146, 488, 10, "#7b4b24");
+  drawPixelRect(236, 358, 488, 10, "#7b4b24");
+  drawPixelRect(236, 146, 10, 222, "#7b4b24");
+  drawPixelRect(714, 146, 10, 222, "#7b4b24");
+  drawScoreText(presentation);
+}
+
 function drawOverlay() {
   if (game.status === "playing") {
+    return;
+  }
+
+  if (game.status === "ended") {
+    drawVictoryResult();
     return;
   }
 
@@ -296,11 +348,7 @@ function drawOverlay() {
   ctx.fillText("Dog Butterfly Chase", CONFIG.width / 2, 214);
 
   ctx.font = "bold 22px Trebuchet MS, sans-serif";
-  if (game.status === "ended") {
-    ctx.fillText(`Final Score ${game.score}`, CONFIG.width / 2, 266);
-  } else {
-    ctx.fillText("30 Second Meadow Round", CONFIG.width / 2, 266);
-  }
+  ctx.fillText("30 Second Meadow Round", CONFIG.width / 2, 266);
 }
 
 function draw() {

@@ -57,3 +57,15 @@ test("catchButterfly increments score, clears target, and keeps butterfly count 
   assert.equal(next.butterflies.length, GameLogic.GAME_CONFIG.butterflyCount);
   assert.equal(next.butterflies.some((butterfly) => butterfly.id === caught.id), false);
 });
+
+test("getResultPresentation returns a victory screen with large score text when the round ends", () => {
+  const state = GameLogic.createGameState();
+  state.status = "ended";
+  state.score = 7;
+
+  const presentation = GameLogic.getResultPresentation(state);
+
+  assert.equal(presentation.screen, "victory");
+  assert.equal(presentation.scoreText, "Score 7");
+  assert.ok(presentation.scoreFontSize >= 60);
+});
