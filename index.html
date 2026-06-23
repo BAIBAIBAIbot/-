@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dog Butterfly Chase</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="game-page">
+      <header class="topbar" aria-label="Game status">
+        <div>
+          <p class="eyebrow">Bright Meadow</p>
+          <h1>Dog Butterfly Chase</h1>
+        </div>
+        <div class="hud">
+          <span id="scoreLabel" class="hud-pill">Score 0</span>
+          <span id="timeLabel" class="hud-pill">Time 30</span>
+        </div>
+      </header>
+
+      <section class="stage" aria-label="Dog Butterfly Chase game">
+        <canvas
+          id="gameCanvas"
+          width="960"
+          height="540"
+          aria-label="A pixel art meadow where a dog catches butterflies"
+        ></canvas>
+      </section>
+
+      <footer class="controls">
+        <button id="startButton" type="button">Start</button>
+        <button id="restartButton" type="button">Restart</button>
+        <p id="statusLabel" class="status-text" aria-live="polite">Ready</p>
+      </footer>
+    </main>
+
+    <script src="game-logic.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
