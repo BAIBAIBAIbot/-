@@ -56,6 +56,8 @@ test("catchButterfly increments score, clears target, and keeps butterfly count 
   assert.equal(next.dog.targetId, null);
   assert.equal(next.butterflies.length, GameLogic.GAME_CONFIG.butterflyCount);
   assert.equal(next.butterflies.some((butterfly) => butterfly.id === caught.id), false);
+  assert.equal(next.effects.at(-1).kind, "catch");
+  assert.ok(next.effects.at(-1).duration >= 0.7);
 });
 
 test("getResultPresentation returns a victory screen with large score text when the round ends", () => {
@@ -68,4 +70,37 @@ test("getResultPresentation returns a victory screen with large score text when 
   assert.equal(presentation.screen, "victory");
   assert.equal(presentation.scoreText, "Score 7");
   assert.ok(presentation.scoreFontSize >= 60);
+});
+
+test("getResultPresentation includes an emperor dog sidekick for the result screen", () => {
+  const state = GameLogic.createGameState();
+  state.status = "ended";
+
+  const presentation = GameLogic.getResultPresentation(state);
+
+  assert.equal(presentation.sidekick.image, "emperor-dog-dialogue");
+  assert.equal(presentation.sidekick.entrance, "slide-from-right");
+  assert.ok(presentation.sidekick.slideSeconds > 1);
+});
+
+test("getDogAnimationFrame cycles through ten chase frames while chasing a target", () => {
+  const dog = { x: 100, y: 250, speed: 240, targetId: "target", facing: 1 };
+
+  const frames = new Set(Array.from({ length: 10 }, (_, index) => (
+    GameLogic.getDogAnimationFrame(dog, index / 12)
+  )));
+
+  assert.deepEqual(frames, new Set([
+    "chase-01",
+    "chase-02",
+    "chase-03",
+    "chase-04",
+    "chase-05",
+    "chase-06",
+    "chase-07",
+    "chase-08",
+    "chase-09",
+    "chase-10"
+  ]));
+  assert.equal(GameLogic.getDogAnimationFrame({ ...dog, targetId: null }, 0.16), "idle");
 });

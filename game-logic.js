@@ -197,10 +197,11 @@
         ...state.effects,
         {
           id: `catch-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+          kind: "catch",
           x: caught.x,
           y: caught.y,
           age: 0,
-          duration: 0.45
+          duration: 0.75
         }
       ]
     };
@@ -269,8 +270,22 @@
     return {
       screen: "victory",
       scoreText: `Score ${state.score}`,
-      scoreFontSize: 68
+      scoreFontSize: 68,
+      sidekick: {
+        image: "emperor-dog-dialogue",
+        entrance: "slide-from-right",
+        slideSeconds: 1.8
+      }
     };
+  }
+
+  function getDogAnimationFrame(dog, elapsed) {
+    if (!dog.targetId) {
+      return "idle";
+    }
+
+    const frameNumber = (Math.floor(elapsed * 12) % 10) + 1;
+    return `chase-${String(frameNumber).padStart(2, "0")}`;
   }
 
   const api = {
@@ -286,7 +301,8 @@
     selectTarget,
     startRound,
     restartRound,
-    getResultPresentation
+    getResultPresentation,
+    getDogAnimationFrame
   };
 
   if (typeof module !== "undefined" && module.exports) {

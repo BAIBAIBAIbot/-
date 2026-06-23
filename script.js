@@ -11,14 +11,47 @@ const CONFIG = Logic.GAME_CONFIG;
 
 let game = Logic.createGameState();
 let lastFrameTime = 0;
+let resultElapsed = 0;
 
 ctx.imageSmoothingEnabled = false;
 
 const art = {
   background: loadImage("assets/background-meadow.png"),
   dog: loadImage("assets/dog-run.png"),
+  dogChase01: loadImage("assets/dog-chase-01.png"),
+  dogChase02: loadImage("assets/dog-chase-02.png"),
+  dogChase03: loadImage("assets/dog-chase-03.png"),
+  dogChase04: loadImage("assets/dog-chase-04.png"),
+  dogChase05: loadImage("assets/dog-chase-05.png"),
+  dogChase06: loadImage("assets/dog-chase-06.png"),
+  dogChase07: loadImage("assets/dog-chase-07.png"),
+  dogChase08: loadImage("assets/dog-chase-08.png"),
+  dogChase09: loadImage("assets/dog-chase-09.png"),
+  dogChase10: loadImage("assets/dog-chase-10.png"),
   butterflies: loadImage("assets/butterflies.png"),
-  victory: loadImage("assets/victory-screen.png")
+  victory: loadImage("assets/victory-screen.png"),
+  emperorDogDialogue: loadImage("assets/emperor-dog-dialogue.png")
+};
+
+const DOG_FRAME_DEFAULTS = {
+  width: 176,
+  anchorX: 0.48,
+  groundOffset: 28,
+  shadowWidth: 132
+};
+
+const DOG_FRAMES = {
+  idle: { key: "dog", width: 170, anchorX: 0.44, groundOffset: 30, shadowWidth: 132 },
+  "chase-01": { key: "dogChase01", width: 172, anchorX: 0.48, groundOffset: 29, shadowWidth: 128 },
+  "chase-02": { key: "dogChase02", width: 184, anchorX: 0.48, groundOffset: 30, shadowWidth: 148 },
+  "chase-03": { key: "dogChase03", width: 186, anchorX: 0.48, groundOffset: 28, shadowWidth: 152 },
+  "chase-04": { key: "dogChase04", width: 162, anchorX: 0.47, groundOffset: 44, shadowWidth: 104 },
+  "chase-05": { key: "dogChase05", width: 172, anchorX: 0.48, groundOffset: 54, shadowWidth: 96 },
+  "chase-06": { key: "dogChase06", width: 184, anchorX: 0.48, groundOffset: 46, shadowWidth: 112 },
+  "chase-07": { key: "dogChase07", width: 176, anchorX: 0.48, groundOffset: 31, shadowWidth: 132 },
+  "chase-08": { key: "dogChase08", width: 170, anchorX: 0.48, groundOffset: 27, shadowWidth: 132 },
+  "chase-09": { key: "dogChase09", width: 172, anchorX: 0.48, groundOffset: 29, shadowWidth: 136 },
+  "chase-10": { key: "dogChase10", width: 184, anchorX: 0.48, groundOffset: 30, shadowWidth: 148 }
 };
 
 function loadImage(src) {
@@ -209,22 +242,25 @@ function drawButterfly(butterfly, isTarget) {
 function drawDog(dog, elapsed) {
   const run = Math.sin(elapsed * 13);
   const jumpLift = dog.targetId ? Math.max(0, Math.sin(elapsed * 7)) * 7 : 0;
+  const frameName = Logic.getDogAnimationFrame(dog, elapsed);
+  const frame = { ...DOG_FRAME_DEFAULTS, ...(DOG_FRAMES[frameName] || DOG_FRAMES.idle) };
+  const frameImage = art[frame.key];
 
   ctx.save();
   ctx.translate(px(dog.x), px(dog.y - jumpLift));
   ctx.scale(dog.facing, 1);
 
-  drawPixelRect(-69, 26, 132, 13, "rgba(45, 42, 26, 0.24)");
+  drawPixelRect(-frame.shadowWidth / 2, 26, frame.shadowWidth, 13, "rgba(45, 42, 26, 0.24)");
 
-  if (art.dog.ready) {
-    const dogWidth = 170;
-    const dogHeight = (art.dog.height / art.dog.width) * dogWidth;
-    const stride = dog.targetId ? Math.sin(elapsed * 15) * 3 : 0;
+  if (frameImage.ready) {
+    const dogWidth = frame.width;
+    const dogHeight = (frameImage.height / frameImage.width) * dogWidth;
+    const stride = dog.targetId ? Math.sin(elapsed * 24) * 2 : 0;
 
     ctx.drawImage(
-      art.dog,
-      -dogWidth * 0.44,
-      -dogHeight + 30 + stride,
+      frameImage,
+      -dogWidth * frame.anchorX,
+      -dogHeight + frame.groundOffset + stride,
       dogWidth,
       dogHeight
     );
@@ -264,14 +300,49 @@ function drawEffects() {
   game.effects.forEach((effect) => {
     const progress = effect.age / effect.duration;
     const alpha = 1 - progress;
+
     ctx.save();
-    ctx.globalAlpha = alpha;
     ctx.translate(effect.x, effect.y);
-    for (let i = 0; i < 8; i += 1) {
-      const angle = (Math.PI * 2 * i) / 8;
-      const dist = 12 + progress * 28;
-      drawPixelRect(Math.cos(angle) * dist, Math.sin(angle) * dist, 6, 6, i % 2 ? "#ffffff" : "#ffd84f");
+
+    if (effect.kind === "catch") {
+      ctx.globalAlpha = alpha;
+      ctx.strokeStyle = "#fff4a4";
+      ctx.lineWidth = 7;
+      ctx.beginPath();
+      ctx.arc(0, 0, 14 + progress * 58, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.strokeStyle = "rgba(141, 85, 20, 0.45)";
+      ctx.lineWidth = 12;
+      ctx.beginPath();
+      ctx.arc(0, 0, 9 + progress * 48, 0, Math.PI * 2);
+      ctx.stroke();
+
+      for (let i = 0; i < 12; i += 1) {
+        const angle = (Math.PI * 2 * i) / 12;
+        const dist = 14 + progress * 52;
+        const size = i % 3 === 0 ? 10 : 7;
+        drawPixelRect(Math.cos(angle) * dist - size / 2, Math.sin(angle) * dist - size / 2, size, size, i % 2 ? "#ffffff" : "#ffd84f");
+      }
+
+      ctx.globalAlpha = Math.max(0, alpha * 1.1);
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.font = "900 34px Trebuchet MS, Verdana, sans-serif";
+      ctx.lineWidth = 7;
+      ctx.strokeStyle = "rgba(83, 48, 18, 0.78)";
+      ctx.strokeText("+1", 0, -34 - progress * 30);
+      ctx.fillStyle = "#ffe56b";
+      ctx.fillText("+1", 0, -34 - progress * 30);
+    } else {
+      ctx.globalAlpha = alpha;
+      for (let i = 0; i < 8; i += 1) {
+        const angle = (Math.PI * 2 * i) / 8;
+        const dist = 12 + progress * 28;
+        drawPixelRect(Math.cos(angle) * dist, Math.sin(angle) * dist, 6, 6, i % 2 ? "#ffffff" : "#ffd84f");
+      }
     }
+
     ctx.restore();
   });
 }
@@ -308,6 +379,7 @@ function drawVictoryResult() {
 
   if (art.victory.ready) {
     ctx.drawImage(art.victory, 0, 0, CONFIG.width, CONFIG.height);
+    drawVictorySidekick(presentation);
     drawScoreText(presentation);
     return;
   }
@@ -320,6 +392,34 @@ function drawVictoryResult() {
   drawPixelRect(236, 146, 10, 222, "#7b4b24");
   drawPixelRect(714, 146, 10, 222, "#7b4b24");
   drawScoreText(presentation);
+}
+
+function easeOutCubic(value) {
+  return 1 - Math.pow(1 - value, 3);
+}
+
+function drawVictorySidekick(presentation) {
+  if (presentation.sidekick?.image !== "emperor-dog-dialogue" || !art.emperorDogDialogue.ready) {
+    return;
+  }
+
+  const slideSeconds = presentation.sidekick.slideSeconds || 1.8;
+  const progress = easeOutCubic(Math.min(1, resultElapsed / slideSeconds));
+  const image = art.emperorDogDialogue;
+  const drawHeight = 350;
+  const drawWidth = (image.width / image.height) * drawHeight;
+  const finalX = CONFIG.width - drawWidth - 18;
+  const startX = CONFIG.width + 24;
+  const x = startX + (finalX - startX) * progress;
+  const y = 74;
+
+  ctx.save();
+  ctx.shadowColor = "rgba(45, 33, 18, 0.28)";
+  ctx.shadowBlur = 16;
+  ctx.shadowOffsetX = -8;
+  ctx.shadowOffsetY = 8;
+  ctx.drawImage(image, x, y, drawWidth, drawHeight);
+  ctx.restore();
 }
 
 function drawOverlay() {
@@ -387,6 +487,7 @@ function syncUi() {
 function step(timestamp) {
   const dt = Math.min(0.05, (timestamp - lastFrameTime) / 1000 || 0);
   lastFrameTime = timestamp;
+  const wasEnded = game.status === "ended";
 
   if (game.status === "playing") {
     game = Logic.tickTimer(game, dt);
@@ -411,6 +512,12 @@ function step(timestamp) {
       butterflies: Logic.updateButterflies(game.butterflies, dt),
       effects: Logic.updateEffects(game.effects, dt)
     };
+  }
+
+  if (game.status === "ended") {
+    resultElapsed = wasEnded ? resultElapsed + dt : 0;
+  } else {
+    resultElapsed = 0;
   }
 
   syncUi();
@@ -450,14 +557,17 @@ startButton.addEventListener("click", () => {
 
   if (game.status === "ended") {
     game = Logic.restartRound();
+    resultElapsed = 0;
     return;
   }
 
   game = Logic.startRound(game);
+  resultElapsed = 0;
 });
 
 restartButton.addEventListener("click", () => {
   game = Logic.restartRound();
+  resultElapsed = 0;
 });
 
 canvas.addEventListener("click", handleCanvasPress);
