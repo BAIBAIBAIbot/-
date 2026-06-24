@@ -25,6 +25,24 @@
     { wingA: "#fff2a8", wingB: "#f7d94a", body: "#4b3b1e" }
   ];
 
+  const GAME_ASSETS = {
+    background: "assets/background-meadow.png",
+    dog: "assets/dog-run.png",
+    dogChase01: "assets/dog-chase-01.png",
+    dogChase02: "assets/dog-chase-02.png",
+    dogChase03: "assets/dog-chase-03.png",
+    dogChase04: "assets/dog-chase-04.png",
+    dogChase05: "assets/dog-chase-05.png",
+    dogChase06: "assets/dog-chase-06.png",
+    dogChase07: "assets/dog-chase-07.png",
+    dogChase08: "assets/dog-chase-08.png",
+    dogChase09: "assets/dog-chase-09.png",
+    dogChase10: "assets/dog-chase-10.png",
+    butterflies: "assets/butterflies.png",
+    victory: "assets/victory-screen.png",
+    emperorDogDialogue: "assets/emperor-dog-dialogue.png"
+  };
+
   let nextButterflyNumber = 1;
 
   function clamp(value, min, max) {
@@ -288,8 +306,13 @@
     return `chase-${String(frameNumber).padStart(2, "0")}`;
   }
 
+  function getRequiredAssetPaths() {
+    return Object.values(GAME_ASSETS);
+  }
+
   const api = {
     GAME_CONFIG,
+    GAME_ASSETS,
     createGameState,
     findButterflyAt,
     moveDogTowardTarget,
@@ -302,7 +325,8 @@
     startRound,
     restartRound,
     getResultPresentation,
-    getDogAnimationFrame
+    getDogAnimationFrame,
+    getRequiredAssetPaths
   };
 
   if (typeof module !== "undefined" && module.exports) {

@@ -83,6 +83,28 @@ test("getResultPresentation includes an emperor dog sidekick for the result scre
   assert.ok(presentation.sidekick.slideSeconds > 1);
 });
 
+test("getRequiredAssetPaths lists every high fidelity art file needed before play", () => {
+  const requiredPaths = GameLogic.getRequiredAssetPaths();
+
+  assert.deepEqual(requiredPaths, [
+    "assets/background-meadow.png",
+    "assets/dog-run.png",
+    "assets/dog-chase-01.png",
+    "assets/dog-chase-02.png",
+    "assets/dog-chase-03.png",
+    "assets/dog-chase-04.png",
+    "assets/dog-chase-05.png",
+    "assets/dog-chase-06.png",
+    "assets/dog-chase-07.png",
+    "assets/dog-chase-08.png",
+    "assets/dog-chase-09.png",
+    "assets/dog-chase-10.png",
+    "assets/butterflies.png",
+    "assets/victory-screen.png",
+    "assets/emperor-dog-dialogue.png"
+  ]);
+});
+
 test("getDogAnimationFrame cycles through ten chase frames while chasing a target", () => {
   const dog = { x: 100, y: 250, speed: 240, targetId: "target", facing: 1 };
 

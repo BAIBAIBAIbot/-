@@ -8,6 +8,7 @@ const restartButton = document.getElementById("restartButton");
 
 const Logic = window.GameLogic;
 const CONFIG = Logic.GAME_CONFIG;
+const ASSET_VERSION = "20260624-preload";
 
 let game = Logic.createGameState();
 let lastFrameTime = 0;
@@ -15,23 +16,9 @@ let resultElapsed = 0;
 
 ctx.imageSmoothingEnabled = false;
 
-const art = {
-  background: loadImage("assets/background-meadow.png"),
-  dog: loadImage("assets/dog-run.png"),
-  dogChase01: loadImage("assets/dog-chase-01.png"),
-  dogChase02: loadImage("assets/dog-chase-02.png"),
-  dogChase03: loadImage("assets/dog-chase-03.png"),
-  dogChase04: loadImage("assets/dog-chase-04.png"),
-  dogChase05: loadImage("assets/dog-chase-05.png"),
-  dogChase06: loadImage("assets/dog-chase-06.png"),
-  dogChase07: loadImage("assets/dog-chase-07.png"),
-  dogChase08: loadImage("assets/dog-chase-08.png"),
-  dogChase09: loadImage("assets/dog-chase-09.png"),
-  dogChase10: loadImage("assets/dog-chase-10.png"),
-  butterflies: loadImage("assets/butterflies.png"),
-  victory: loadImage("assets/victory-screen.png"),
-  emperorDogDialogue: loadImage("assets/emperor-dog-dialogue.png")
-};
+const art = Object.fromEntries(
+  Object.entries(Logic.GAME_ASSETS).map(([key, src]) => [key, loadImage(src)])
+);
 
 const DOG_FRAME_DEFAULTS = {
   width: 176,
@@ -56,12 +43,60 @@ const DOG_FRAMES = {
 
 function loadImage(src) {
   const image = new Image();
+  const maxAttempts = 5;
+
+  image.logicalSrc = src;
+  image.ready = false;
+  image.failed = false;
+  image.attempts = 0;
+
+  function assignSource() {
+    image.attempts += 1;
+    image.failed = false;
+    image.src = `${src}?v=${ASSET_VERSION}${image.attempts === 1 ? "" : `&retry=${Date.now()}`}`;
+  }
+
   image.onload = () => {
     image.ready = true;
+    image.failed = false;
     draw();
+    syncUi();
   };
-  image.src = src;
+
+  image.onerror = () => {
+    image.ready = false;
+    image.failed = true;
+
+    if (image.attempts < maxAttempts) {
+      window.setTimeout(assignSource, 500 * image.attempts);
+    }
+
+    draw();
+    syncUi();
+  };
+
+  assignSource();
   return image;
+}
+
+function assetList() {
+  return Object.values(art);
+}
+
+function readyAssetCount() {
+  return assetList().filter((image) => image.ready).length;
+}
+
+function totalAssetCount() {
+  return assetList().length;
+}
+
+function failedAssetCount() {
+  return assetList().filter((image) => image.failed).length;
+}
+
+function areAssetsReady() {
+  return readyAssetCount() === totalAssetCount();
 }
 
 function px(value) {
@@ -451,8 +486,55 @@ function drawOverlay() {
   ctx.fillText("30 Second Meadow Round", CONFIG.width / 2, 266);
 }
 
+function drawLoadingOverlay() {
+  if (art.background.ready) {
+    ctx.drawImage(art.background, 0, 0, CONFIG.width, CONFIG.height);
+    drawAtmosphere();
+  } else {
+    const sky = ctx.createLinearGradient(0, 0, 0, CONFIG.height);
+    sky.addColorStop(0, "#9be6ff");
+    sky.addColorStop(0.58, "#dff8ff");
+    sky.addColorStop(1, "#86be68");
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, CONFIG.width, CONFIG.height);
+  }
+
+  const ready = readyAssetCount();
+  const total = totalAssetCount();
+  const failed = failedAssetCount();
+  const label = failed > 0 ? "Retrying art" : "Loading art";
+
+  ctx.fillStyle = "rgba(29, 49, 31, 0.68)";
+  ctx.fillRect(0, 0, CONFIG.width, CONFIG.height);
+
+  drawPixelRect(286, 202, 388, 136, "#fff6cf");
+  drawPixelRect(286, 202, 388, 10, "#7b4b24");
+  drawPixelRect(286, 328, 388, 10, "#7b4b24");
+  drawPixelRect(286, 202, 10, 136, "#7b4b24");
+  drawPixelRect(664, 202, 10, 136, "#7b4b24");
+
+  ctx.save();
+  ctx.fillStyle = "#2b241b";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.font = "900 34px Trebuchet MS, Verdana, sans-serif";
+  ctx.fillText(`${label} ${ready}/${total}`, CONFIG.width / 2, 248);
+
+  ctx.fillStyle = "rgba(123, 75, 36, 0.24)";
+  ctx.fillRect(344, 292, 272, 16);
+  ctx.fillStyle = "#ffcf4a";
+  ctx.fillRect(344, 292, Math.max(10, (272 * ready) / total), 16);
+  ctx.restore();
+}
+
 function draw() {
   ctx.clearRect(0, 0, CONFIG.width, CONFIG.height);
+
+  if (!areAssetsReady()) {
+    drawLoadingOverlay();
+    return;
+  }
+
   drawBackground();
 
   const targetId = game.dog.targetId;
@@ -468,6 +550,16 @@ function draw() {
 function syncUi() {
   scoreLabel.textContent = `Score ${game.score}`;
   timeLabel.textContent = `Time ${Math.ceil(game.timeLeft)}`;
+
+  if (!areAssetsReady()) {
+    statusLabel.textContent = `Loading ${readyAssetCount()}/${totalAssetCount()}`;
+    startButton.textContent = "Start";
+    startButton.disabled = true;
+    restartButton.disabled = true;
+    return;
+  }
+
+  restartButton.disabled = false;
 
   if (game.status === "ready") {
     statusLabel.textContent = "Ready";
@@ -551,7 +643,7 @@ function handleCanvasPress(event) {
 }
 
 startButton.addEventListener("click", () => {
-  if (game.status === "playing") {
+  if (!areAssetsReady() || game.status === "playing") {
     return;
   }
 
@@ -566,6 +658,10 @@ startButton.addEventListener("click", () => {
 });
 
 restartButton.addEventListener("click", () => {
+  if (!areAssetsReady()) {
+    return;
+  }
+
   game = Logic.restartRound();
   resultElapsed = 0;
 });
